@@ -9,7 +9,7 @@ ACCESS_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NDYzMzkwMzkuMDQ
 
 # Mapping of batch IDs to channel IDs
 BATCH_CHANNEL_MAP = {
-    "67738e4a5787b05d8ec6e07f": "-1002472817328",  # Replace with your batch ID and channel ID         # Add more batch-channel pairs as needed
+    "67738e4a5787b05d8ec6e07f": "-1002539689928",  # Replace with your batch ID and channel ID         # Add more batch-channel pairs as needed
 }
 
 # Per-batch seen items to track unique content
