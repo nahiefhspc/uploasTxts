@@ -86,7 +86,7 @@ async def get_today_content(session, batch_id):
 
 async def is_new_content(batch_id, name, url):
     collection = db[f"batch_{batch_id}"]
-    return collection.find_one({"name": name, "url": url}) is None
+    return collection.find_one({"url": url}) is None
 
 async def save_content(batch_id, name, url):
     collection = db[f"batch_{batch_id}"]
