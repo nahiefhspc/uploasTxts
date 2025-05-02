@@ -8,17 +8,22 @@ from datetime import datetime, timedelta
 import pytz
 
 BOT_TOKEN = "6223059105:AAGgaB0BRIGfec1cYTbaQyr6uy4ragjNWt0" 
-ACCESS_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NDYzMzkwMzkuMDQ0LCJkYXRhIjp7Il9pZCI6IjY0YjY0NDhkNjAxYWM2MDAxOGQ5ODE1MyIsInVzZXJuYW1lIjoiOTM1MjYzMTczMSIsImZpcnN0TmFtZSI6Ik5hbWFuIiwibGFzdE5hbWUiOiIiLCJvcmdhbml6YXRpb24iOnsiX2lkIjoiNWViMzkzZWU5NWZhYjc0NjhhNzlkMTg5Iiwid2Vic2l0ZSI6InBoeXNpY3N3YWxsYWguY29tIiwibmFtZSI6IlBoeXNpY3N3YWxsYWgifSwiZW1haWwiOiJvcG1hc3Rlcjk4NTRAZ21haWwuY29tIiwicm9sZXMiOlsiNWIyN2JkOTY1ODQyZjk1MGE3NzhjNmVmIl0sImNvdW50cnlHcm91cCI6IklOIiwidHlwZSI6IlVTRVIifSwiaWF0IjoxNzQ1NzM0MjM5fQ.GNUr2USwCUeV7Y8gWsyIp3yuGnaSdrg7bbjkCBSdguI"
 MONGO_URI = "mongodb+srv://namanjain123eudhc:opmaster@cluster0.5iokvxo.mongodb.net/?retryWrites=true&w=majority"  # Replace with your MongoDB connection string
+TOKEN_API_URL = "https://api-accesstoken.vercel.app/"
+
 # Mapping of batch IDs to channel IDs
 BATCH_CHANNEL_MAP = {
-    "67738e4a5787b05d8ec6e07f": "-1002539689928",  # Replace with your batch ID and channel ID       # Add more batch-channel pairs as needed
+    "67738e4a5787b05d8ec6e07f": "-1002472817328",  # Replace with your batch ID and channel I         # Add more batch-channel pairs as needed
 }
 
 # MongoDB client
 mongo_client = MongoClient(MONGO_URI)
 db = mongo_client["content_db"]
 
+# Global ACCESS_TOKEN (will be fetched)
+ACCESS_TOKEN = None
+
+# Headers template (updated with ACCESS_TOKEN after fetching)
 HEADERS = {
     'Host': 'api.penpencil.co',
     'client-id': '5eb393ee95fab7468a79d189',
@@ -27,10 +32,30 @@ HEADERS = {
     'randomid': '72012511-256c-4e1c-b4c7-29d67136af37',
     'client-type': 'WEB',
     'content-type': 'application/json; charset=utf-8',
-    'authorization': f"Bearer {ACCESS_TOKEN}",
 }
 
 logging.basicConfig(level=logging.INFO)
+
+async def fetch_access_token():
+    async with aiohttp.ClientSession() as session:
+        for attempt in range(3):  # Retry up to 3 times
+            try:
+                async with session.get(TOKEN_API_URL) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        token = data.get("token")
+                        if token:
+                            logging.info("Successfully fetched ACCESS_TOKEN")
+                            return token
+                        else:
+                            logging.error("No token found in API response")
+                    else:
+                        logging.error(f"Token API returned status {response.status}")
+            except Exception as e:
+                logging.error(f"Error fetching ACCESS_TOKEN (attempt {attempt + 1}): {e}")
+            await asyncio.sleep(5)  # Wait 5 seconds before retrying
+        logging.error("Failed to fetch ACCESS_TOKEN after retries")
+        return None
 
 async def fetch_json(session, url):
     async with session.get(url, headers=HEADERS) as response:
@@ -101,7 +126,7 @@ async def clear_batch_data(batch_id):
             # Get current time in UTC
             now = datetime.now(pytz.UTC)
             # Calculate time until 11 PM today (or tomorrow if past 11 PM)
-            target_time = now.replace(hour=23, minute=30, second=0, microsecond=0)
+            target_time = now.replace(hour=23, minute=0, second=0, microsecond=0)
             if now.hour >= 23:
                 target_time += timedelta(days=1)
             seconds_until_11pm = (target_time - now).total_seconds()
@@ -148,6 +173,17 @@ async def monitor_batch(bot, batch_id, channel_id):
                 await asyncio.sleep(60)
 
 async def start_monitoring(application):
+    global ACCESS_TOKEN, HEADERS
+    
+    # Fetch ACCESS_TOKEN
+    ACCESS_TOKEN = await fetch_access_token()
+    if not ACCESS_TOKEN:
+        logging.error("Cannot start bot: ACCESS_TOKEN not available")
+        return
+    
+    # Update HEADERS with the fetched token
+    HEADERS['authorization'] = f"Bearer {ACCESS_TOKEN}"
+    
     bot = application.bot
     tasks = []
     for batch_id, channel_id in BATCH_CHANNEL_MAP.items():
