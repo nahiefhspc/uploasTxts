@@ -13,7 +13,7 @@ TOKEN_API_URL = "https://api-accesstoken.vercel.app/"
 
 # Mapping of batch IDs to channel IDs
 BATCH_CHANNEL_MAP = {
-    "67738e4a5787b05d8ec6e07f": "-1002472817328",  # Replace with your batch ID and channel I         # Add more batch-channel pairs as needed
+    "67738e4a5787b05d8ec6e07f": "-1002534311095",  # Replace with your batch ID and channel I         # Add more batch-channel pairs as needed
 }
 
 # MongoDB client
