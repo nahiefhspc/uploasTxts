@@ -43,7 +43,7 @@ async def fetch_access_token():
                 async with session.get(TOKEN_API_URL) as response:
                     if response.status == 200:
                         data = await response.json()
-                        token = data.get("token")
+                        token = data.get("access_token")
                         if token:
                             logging.info("Successfully fetched ACCESS_TOKEN")
                             return token
