@@ -9,7 +9,7 @@ import pytz
 
 BOT_TOKEN = "6223059105:AAGgaB0BRIGfec1cYTbaQyr6uy4ragjNWt0" 
 MONGO_URI = "mongodb+srv://namanjain123eudhc:opmaster@cluster0.5iokvxo.mongodb.net/?retryWrites=true&w=majority"  # Replace with your MongoDB connection string
-TOKEN_API_URL = "https://api-accesstoken.vercel.app/"
+ACCESS_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NDY3NTk5NTguMDkyLCJkYXRhIjp7Il9pZCI6IjY0YjY0NDhkNjAxYWM2MDAxOGQ5ODE1MyIsInVzZXJuYW1lIjoiOTM1MjYzMTczMSIsImZpcnN0TmFtZSI6Ik5hbWFuIiwibGFzdE5hbWUiOiIiLCJvcmdhbml6YXRpb24iOnsiX2lkIjoiNWViMzkzZWU5NWZhYjc0NjhhNzlkMTg5Iiwid2Vic2l0ZSI6InBoeXNpY3N3YWxsYWguY29tIiwibmFtZSI6IlBoeXNpY3N3YWxsYWgifSwiZW1haWwiOiJvcG1hc3Rlcjk4NTRAZ21haWwuY29tIiwicm9sZXMiOlsiNWIyN2JkOTY1ODQyZjk1MGE3NzhjNmVmIl0sImNvdW50cnlHcm91cCI6IklOIiwidHlwZSI6IlVTRVIifSwiaWF0IjoxNzQ2MTU1MTU4fQ.P_SBqhtqvV-PVupPWkT1ZZxQpeVbDNzQ7dqePzgfo9c"
 
 # Mapping of batch IDs to channel IDs
 BATCH_CHANNEL_MAP = {
@@ -21,8 +21,6 @@ mongo_client = MongoClient(MONGO_URI)
 db = mongo_client["content_db"]
 
 # Global ACCESS_TOKEN (will be fetched)
-ACCESS_TOKEN = None
-
 # Headers template (updated with ACCESS_TOKEN after fetching)
 HEADERS = {
     'Host': 'api.penpencil.co',
@@ -35,27 +33,6 @@ HEADERS = {
 }
 
 logging.basicConfig(level=logging.INFO)
-
-async def fetch_access_token():
-    async with aiohttp.ClientSession() as session:
-        for attempt in range(3):  # Retry up to 3 times
-            try:
-                async with session.get(TOKEN_API_URL) as response:
-                    if response.status == 200:
-                        data = await response.json()
-                        token = data.get("access_token")
-                        if token:
-                            logging.info("Successfully fetched ACCESS_TOKEN")
-                            return token
-                        else:
-                            logging.error("No token found in API response")
-                    else:
-                        logging.error(f"Token API returned status {response.status}")
-            except Exception as e:
-                logging.error(f"Error fetching ACCESS_TOKEN (attempt {attempt + 1}): {e}")
-            await asyncio.sleep(5)  # Wait 5 seconds before retrying
-        logging.error("Failed to fetch ACCESS_TOKEN after retries")
-        return None
 
 async def fetch_json(session, url):
     async with session.get(url, headers=HEADERS) as response:
