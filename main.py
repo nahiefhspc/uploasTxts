@@ -153,10 +153,6 @@ async def start_monitoring(application):
     global ACCESS_TOKEN, HEADERS
     
     # Fetch ACCESS_TOKEN
-    ACCESS_TOKEN = await fetch_access_token()
-    if not ACCESS_TOKEN:
-        logging.error("Cannot start bot: ACCESS_TOKEN not available")
-        return
     
     # Update HEADERS with the fetched token
     HEADERS['authorization'] = f"Bearer {ACCESS_TOKEN}"
