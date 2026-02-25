@@ -754,8 +754,7 @@ async def txt_handler(bot: Client, m: Message):
                 url = f"{base_clean}*{signature}"
 
             elif any(x in url for x in ["youtube.com/", "youtu.be/"]):
-    import re
-    import time
+    
     
                 # Extract Video ID
                 yt_patterns = [
@@ -774,7 +773,7 @@ async def txt_handler(bot: Client, m: Message):
                         break
     
                 if video_id:
-                    quality = raw_text97
+                    quality = raw_text2
                     print(f"[YouTube] Video ID: {video_id}")
                     print(f"[YouTube] Requested Quality: {quality}p")
         
